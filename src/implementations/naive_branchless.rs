@@ -51,3 +51,39 @@ fn to_code_points(chars: &[char]) -> Vec<u32> {
 fn utf8_size(encoded: u32) -> usize {
     std::cmp::max(1, (u32::BITS - encoded.leading_zeros()) as usize / 8)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::encode;
+
+    #[test]
+    fn encode_ascii() {
+        roundtrip("A");
+        roundtrip("Hello");
+    }
+
+    #[test]
+    fn encode_latin1() {
+        roundtrip("ß");
+    }
+
+    #[test]
+    fn encode_bmp() {
+        roundtrip("文");
+    }
+
+    #[test]
+    fn encode_astral() {
+        roundtrip("💩");
+    }
+
+    #[test]
+    fn encode_anything() {
+        roundtrip("ß 文 💩 A");
+    }
+
+    fn roundtrip(s: &str) {
+        let utf32: Vec<_> = s.chars().collect();
+        assert_eq!(Ok(s), encode(&utf32).as_deref());
+    }
+}
