@@ -17,6 +17,6 @@ pub fn print_encode_str(s: &str) {
     use implementations::naive_branchless;
 
     let chars: Vec<_> = s.chars().collect();
-    let encoded = naive_branchless::encode_code_points_to_str(&chars);
+    let encoded = naive_branchless::encode(&chars);
     println!("{encoded:?}");
 }

@@ -7,7 +7,7 @@ const SHIFT_LUT: [u32; 32] = [
     0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 ];
 
-pub fn encode_code_points_to_str(chars: &[char]) -> Result<String, std::string::FromUtf8Error> {
+pub fn encode(chars: &[char]) -> Result<String, std::string::FromUtf8Error> {
     let fat_utf8 = to_code_points(chars);
     let mut buffer = vec![0u8; 4 * fat_utf8.len()];
     if buffer.is_empty() {
