@@ -12,6 +12,16 @@ fn built_in_implementation(bencher: Bencher) {
         .bench_values(|example| example.into_iter().collect::<String>())
 }
 
+/// "Textbook" implementation -- match/case
+#[divan::bench]
+fn textbook_implementation(bencher: Bencher) {
+    use branchless_utf8::implementations::textbook::encode;
+
+    bencher
+        .with_inputs(|| load_example())
+        .bench_values(|example| encode(&example))
+}
+
 /// First version of the branchless implementation:
 #[divan::bench]
 fn naive_implementation(bencher: Bencher) {
