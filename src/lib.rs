@@ -20,3 +20,8 @@ pub fn print_encode_str(s: &str) {
     let encoded = naive_branchless::encode(&chars);
     println!("{encoded:?}");
 }
+
+#[cfg(test)]
+pub mod common_test {
+    pub const RANDOM_128: &str = include_str!("random_128.txt");
+}

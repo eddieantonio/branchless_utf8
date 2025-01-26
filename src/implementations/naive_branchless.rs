@@ -82,6 +82,11 @@ mod tests {
         roundtrip("ß 文 💩 A");
     }
 
+    #[test]
+    fn encode_128() {
+        roundtrip(crate::common_test::RANDOM_128);
+    }
+
     fn roundtrip(s: &str) {
         let utf32: Vec<_> = s.chars().collect();
         assert_eq!(Ok(s), encode(&utf32).as_deref());
