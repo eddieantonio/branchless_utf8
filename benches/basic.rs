@@ -48,6 +48,18 @@ fn scalar_branchless(bencher: Bencher, t: TestCase) {
         .bench_values(|example| encode(&example))
 }
 
+/// A simd implementation, using wide
+#[divan::bench(args = [TestCase::Utf8Sample, TestCase::Test1m])]
+fn simd_branchless(bencher: Bencher, t: TestCase) {
+    use branchless_utf8::implementations::simd_branchless::encode;
+
+    bencher
+        .with_inputs(|| t.load_utf32())
+        .bench_values(|example| encode(&example))
+}
+
+// --- helper ---
+
 impl TestCase {
     fn load_utf32(self) -> Vec<char> {
         match self {
