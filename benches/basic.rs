@@ -48,7 +48,17 @@ fn scalar_branchless(bencher: Bencher, t: TestCase) {
         .bench_values(|example| encode(&example))
 }
 
-/// A simd implementation, using wide
+/// Same as above, but removes a look-up table
+#[divan::bench(args = [TestCase::Utf8Sample, TestCase::Test1m])]
+fn scalar_branchless_no_shift_lut(bencher: Bencher, t: TestCase) {
+    use branchless_utf8::implementations::scalar_branchless_no_shift_lut::encode;
+
+    bencher
+        .with_inputs(|| t.load_utf32())
+        .bench_values(|example| encode(&example))
+}
+
+/// A simd implementation, using wide -- turns out LLVM autovectorizes better than this
 #[divan::bench(args = [TestCase::Utf8Sample, TestCase::Test1m])]
 fn simd_branchless(bencher: Bencher, t: TestCase) {
     use branchless_utf8::implementations::simd_branchless::encode;
