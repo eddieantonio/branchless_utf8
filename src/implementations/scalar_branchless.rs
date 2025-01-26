@@ -1,14 +1,14 @@
 use std::mem::{self, MaybeUninit};
 
-const LUT: [u32; 32] = [
-    0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0xC080, 0xC080, 0xC080, 0xC080, 0xE08080, 0xE08080,
-    0xE08080, 0xE08080, 0xE08080, 0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080,
+const LUT: [u32; 33] = [
+    0, 0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080,
     0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080,
-    0xF0808080, 0xF0808080,
+    0xE08080, 0xE08080, 0xE08080, 0xE08080, 0xE08080, 0xC080, 0xC080, 0xC080, 0xC080, 0x0, 0x0,
+    0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
 ];
-
-const SHIFT_LUT: [u32; 32] = [
-    0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+const SHIFT_LUT: [u32; 33] = [
+    0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0,
+    0,
 ];
 
 pub fn encode(chars: &[char]) -> Result<String, std::string::FromUtf8Error> {
@@ -20,15 +20,14 @@ pub fn encode(chars: &[char]) -> Result<String, std::string::FromUtf8Error> {
         .copied()
         .map(|orig| {
             let scalar_value: u32 = orig.into();
-            // TODO: invert:
-            let n_bits = (u32::BITS - scalar_value.leading_zeros()) as usize;
+            let n_zeros = scalar_value.leading_zeros() as usize;
 
             let a = scalar_value & 0b111_000000_000000_000000;
             let b = scalar_value & 0b000_111111_000000_000000;
             let c = scalar_value & 0b000_000000_111111_000000;
             let d = scalar_value & 0b000_000000_000000_111111;
 
-            let encoded = LUT[n_bits] | a << 6 | b << 4 | c << SHIFT_LUT[n_bits] | d;
+            let encoded = LUT[n_zeros] | a << 6 | b << 4 | c << SHIFT_LUT[n_zeros] | d;
             let added_size = utf8_size(encoded);
             final_size += added_size;
             encoded
