@@ -1,31 +1,35 @@
 # UTF-8 encoding
 
-Various algorithms for encoding UTF-8. Some of them are better than others.
+Various algorithms for encoding UTF-8 from a sequence of UTF-32 code
+units. Some algorithms are better than others.
 
-```
-     Running benches/basic.rs (target/release/deps/basic-d3a63add28fe644d)
-Timer precision: 41 ns
-basic                              fastest       │ slowest       │ median        │ mean          │ samples │ iters
-├─ built_in_implementation                       │               │               │               │         │
-│  ├─ Test1m                       6.628 ms      │ 6.925 ms      │ 6.757 ms      │ 6.768 ms      │ 100     │ 100
-│  ╰─ Utf8Sample                   21.16 µs      │ 47.49 µs      │ 21.22 µs      │ 21.56 µs      │ 100     │ 100
-├─ naive_implementation                          │               │               │               │         │
-│  ├─ Test1m                       8.271 ms      │ 10.36 ms      │ 8.407 ms      │ 8.441 ms      │ 100     │ 100
-│  ╰─ Utf8Sample                   26.08 µs      │ 86.24 µs      │ 26.24 µs      │ 26.99 µs      │ 100     │ 100
-├─ scalar_branchless                             │               │               │               │         │
-│  ├─ Test1m                       3.157 ms      │ 4.052 ms      │ 3.222 ms      │ 3.246 ms      │ 100     │ 100
-│  ╰─ Utf8Sample                   18.91 µs      │ 30.24 µs      │ 19.08 µs      │ 19.2 µs       │ 100     │ 100
-├─ scalar_branchless_no_shift_lut                │               │               │               │         │
-│  ├─ Test1m                       2.419 ms      │ 4.96 ms       │ 2.49 ms       │ 2.529 ms      │ 100     │ 100
-│  ╰─ Utf8Sample                   13.91 µs      │ 48.08 µs      │ 14.04 µs      │ 14.54 µs      │ 100     │ 100
-├─ simd_branchless                               │               │               │               │         │
-│  ├─ Test1m                       5.34 ms       │ 7.37 ms       │ 5.409 ms      │ 5.436 ms      │ 100     │ 100
-│  ╰─ Utf8Sample                   33.45 µs      │ 70.49 µs      │ 33.54 µs      │ 34.02 µs      │ 100     │ 100
-╰─ textbook_implementation                       │               │               │               │         │
-   ├─ Test1m                       4.95 ms       │ 5.212 ms      │ 5.006 ms      │ 5.013 ms      │ 100     │ 100
-   ╰─ Utf8Sample                   20.12 µs      │ 72.04 µs      │ 20.24 µs      │ 21.23 µs      │ 100     │ 100
-```
+**tl;dr**: What I've learned from this is that LLVM is much better at
+vectorizing code than I am. Also, the "textbook" algorithm is faster
+than `vec.iter().collect::<String>()` for some reason.
 
+# Results
+
+These results were obtained on my 2021 M1 MacBook Pro (macOS 14.7).
+
+On [The UTF-8 Sample page](./benches/utf8-sample.txt):
+
+| Implementation                 | Fastest  | Slowest  | Median   | Mean     |
+|--------------------------------|---------:|---------:|---------:|---------:|
+| `.collect::<String>()`         | 23.74 µs | 54.49 µs | 24.66 µs | 25.13 µs |
+| Textbook implementation        | 19.62 µs | 61.16 µs | 20.37 µs | 21.19 µs |
+| Naïve branchless               | 25.24 µs | 93.49 µs | 26.27 µs | 27.07 µs |
+| Autovectorized branchless      | 19.62 µs | 82.45 µs | 20.39 µs |    21 µs |
+| Explicit SIMD with `wide`      | 33.45 µs | 74.58 µs |  33.6 µs |  34.6 µs |
+
+On about 1 million random code points ([Do not open this file](./benches/test_1m.txt)):
+
+| Implementation                 | Fastest  | Slowest  | Median   | Mean     |
+|--------------------------------|---------:|---------:|---------:|---------:|
+| `.collect::<String>()`         | 6.697 ms | 7.168 ms | 6.737 ms | 6.767 ms |
+| Textbook implementation        | 4.967 ms | 5.751 ms | 5.108 ms | 5.136 ms |
+| Naïve branchless               | 8.295 ms | 8.941 ms |  8.45 ms | 8.464 ms |
+| Autovectorized branchless      | 3.352 ms | 3.891 ms | 3.479 ms | 3.503 ms |
+| Explicit SIMD with `wide`      | 5.354 ms | 6.101 ms | 5.499 ms | 5.508 ms |
 
 # Copying
 

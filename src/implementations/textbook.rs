@@ -1,3 +1,5 @@
+//! What would happen if you spend 2 minutes reading the Wikipedia article on UTF-8 and writing a
+//! converter:
 pub fn encode(chars: &[char]) -> Result<String, std::string::FromUtf8Error> {
     let mut buffer = Vec::with_capacity(chars.len());
 

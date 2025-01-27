@@ -1,9 +1,9 @@
 pub mod implementations;
 
 pub fn print_encoded(c: char) {
-    use implementations::naive_branchless;
+    use implementations::branchless_01_naive::encode_one;
 
-    let encoded = naive_branchless::encode_one(c);
+    let encoded = encode_one(c);
     let decoded = {
         let code_units = encoded.to_be_bytes();
         let offset = std::cmp::min(3, encoded.leading_zeros() as usize / 8);
@@ -14,10 +14,10 @@ pub fn print_encoded(c: char) {
 }
 
 pub fn print_encode_str(s: &str) {
-    use implementations::naive_branchless;
+    use implementations::branchless_01_naive::encode;
 
     let chars: Vec<_> = s.chars().collect();
-    let encoded = naive_branchless::encode(&chars);
+    let encoded = encode(&chars);
     println!("{encoded:?}");
 }
 

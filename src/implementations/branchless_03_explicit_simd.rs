@@ -1,3 +1,5 @@
+//! A version I tried using the `wide` crate. It did not go well :(
+
 use std::mem::{self, MaybeUninit};
 
 use wide::u32x4;
@@ -7,6 +9,10 @@ const LUT: [u32; 33] = [
     0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080, 0xF0808080,
     0xE08080, 0xE08080, 0xE08080, 0xE08080, 0xE08080, 0xC080, 0xC080, 0xC080, 0xC080, 0x0, 0x0,
     0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
+];
+const SHIFT_LUT: [u32; 33] = [
+    0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0,
+    0,
 ];
 
 pub fn encode(chars: &[char]) -> Result<String, std::string::FromUtf8Error> {
@@ -23,23 +29,24 @@ pub fn encode(chars: &[char]) -> Result<String, std::string::FromUtf8Error> {
         let mut values = [0u32; 4];
         values.clone_from_slice(chunk);
 
-        let n_zeros = u32x4::new([
-            values[0].leading_zeros(),
-            values[1].leading_zeros(),
-            values[2].leading_zeros(),
-            values[3].leading_zeros(),
-        ]);
-
+        let n_zeros = [
+            values[0].leading_zeros() as usize,
+            values[1].leading_zeros() as usize,
+            values[2].leading_zeros() as usize,
+            values[3].leading_zeros() as usize,
+        ];
         let overlay = u32x4::new([
-            LUT[n_zeros.as_array_ref()[0] as usize],
-            LUT[n_zeros.as_array_ref()[1] as usize],
-            LUT[n_zeros.as_array_ref()[2] as usize],
-            LUT[n_zeros.as_array_ref()[3] as usize],
+            LUT[n_zeros[0]],
+            LUT[n_zeros[1]],
+            LUT[n_zeros[2]],
+            LUT[n_zeros[3]],
         ]);
-
-        let shift_amount = n_zeros
-            .cmp_eq(u32x4::splat(25))
-            .blend(u32x4::splat(0), u32x4::splat(2));
+        let shift_amount = u32x4::new([
+            SHIFT_LUT[n_zeros[0]],
+            SHIFT_LUT[n_zeros[1]],
+            SHIFT_LUT[n_zeros[2]],
+            SHIFT_LUT[n_zeros[3]],
+        ]);
 
         let values = u32x4::new(values);
 
@@ -64,10 +71,7 @@ pub fn encode(chars: &[char]) -> Result<String, std::string::FromUtf8Error> {
         let c = scalar_value & 0b000_000000_111111_000000;
         let d = scalar_value & 0b000_000000_000000_111111;
 
-        // Only ASCII values with the 7th bit set need this exception:
-        let shift = if n_zeros == 25 { 0 } else { 2 };
-
-        let encoded = LUT[n_zeros] | a << 6 | b << 4 | c << shift | d;
+        let encoded = LUT[n_zeros] | a << 6 | b << 4 | c << SHIFT_LUT[n_zeros] | d;
         let added_size = encoded.utf8_size();
         final_size += added_size;
         fat_utf8.push(encoded)

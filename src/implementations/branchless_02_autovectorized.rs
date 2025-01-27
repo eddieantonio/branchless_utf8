@@ -1,3 +1,4 @@
+//! An updated version of branchless_01_naive that uses a rew more tricks.
 use std::mem::{self, MaybeUninit};
 
 const LUT: [u32; 33] = [

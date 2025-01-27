@@ -1,6 +1,4 @@
-pub mod naive_branchless;
-pub mod scalar_branchless;
-pub mod scalar_branchless_no_shift_lut;
-pub mod simd_branchless;
-pub mod simd_branchless_lutless;
+pub mod branchless_01_naive;
+pub mod branchless_02_autovectorized;
+pub mod branchless_03_explicit_simd;
 pub mod textbook;

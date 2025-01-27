@@ -12,7 +12,7 @@ enum TestCase {
 
 /// Rust built-in implementation
 #[divan::bench(args = [TestCase::Utf8Sample, TestCase::Test1m])]
-fn built_in_implementation(bencher: Bencher, t: TestCase) {
+fn impl01_rust_collect_string(bencher: Bencher, t: TestCase) {
     bencher
         .with_inputs(|| t.load_utf32())
         .bench_values(|example| example.into_iter().collect::<String>())
@@ -20,7 +20,7 @@ fn built_in_implementation(bencher: Bencher, t: TestCase) {
 
 /// "Textbook" implementation -- match/case
 #[divan::bench(args = [TestCase::Utf8Sample, TestCase::Test1m])]
-fn textbook_implementation(bencher: Bencher, t: TestCase) {
+fn impl02_textbook_implementation(bencher: Bencher, t: TestCase) {
     use branchless_utf8::implementations::textbook::encode;
 
     bencher
@@ -30,8 +30,8 @@ fn textbook_implementation(bencher: Bencher, t: TestCase) {
 
 /// First version of the branchless implementation:
 #[divan::bench(args = [TestCase::Utf8Sample, TestCase::Test1m])]
-fn naive_implementation(bencher: Bencher, t: TestCase) {
-    use branchless_utf8::implementations::naive_branchless::encode;
+fn impl03_naive_branchless(bencher: Bencher, t: TestCase) {
+    use branchless_utf8::implementations::branchless_01_naive::encode;
 
     bencher
         .with_inputs(|| t.load_utf32())
@@ -40,18 +40,8 @@ fn naive_implementation(bencher: Bencher, t: TestCase) {
 
 /// A better scalar, branchless implementation
 #[divan::bench(args = [TestCase::Utf8Sample, TestCase::Test1m])]
-fn scalar_branchless(bencher: Bencher, t: TestCase) {
-    use branchless_utf8::implementations::scalar_branchless::encode;
-
-    bencher
-        .with_inputs(|| t.load_utf32())
-        .bench_values(|example| encode(&example))
-}
-
-/// Same as above, but removes a look-up table
-#[divan::bench(args = [TestCase::Utf8Sample, TestCase::Test1m])]
-fn scalar_branchless_no_shift_lut(bencher: Bencher, t: TestCase) {
-    use branchless_utf8::implementations::scalar_branchless_no_shift_lut::encode;
+fn impl04_scalar_branchless(bencher: Bencher, t: TestCase) {
+    use branchless_utf8::implementations::branchless_02_autovectorized::encode;
 
     bencher
         .with_inputs(|| t.load_utf32())
@@ -60,25 +50,15 @@ fn scalar_branchless_no_shift_lut(bencher: Bencher, t: TestCase) {
 
 /// A simd implementation, using wide -- turns out LLVM autovectorizes better than this
 #[divan::bench(args = [TestCase::Utf8Sample, TestCase::Test1m])]
-fn simd_branchless(bencher: Bencher, t: TestCase) {
-    use branchless_utf8::implementations::simd_branchless::encode;
+fn impl05_simd_branchless(bencher: Bencher, t: TestCase) {
+    use branchless_utf8::implementations::branchless_03_explicit_simd::encode;
 
     bencher
         .with_inputs(|| t.load_utf32())
         .bench_values(|example| encode(&example))
 }
 
-/// A simd implementation, using wide -- turns out LLVM autovectorizes better than this
-#[divan::bench(args = [TestCase::Utf8Sample, TestCase::Test1m])]
-fn simd_branchless_lutless(bencher: Bencher, t: TestCase) {
-    use branchless_utf8::implementations::simd_branchless_lutless::encode;
-
-    bencher
-        .with_inputs(|| t.load_utf32())
-        .bench_values(|example| encode(&example))
-}
-
-// --- helper ---
+// --- Helper ---
 
 impl TestCase {
     fn load_utf32(self) -> Vec<char> {
